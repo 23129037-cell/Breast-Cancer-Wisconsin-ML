@@ -1,0 +1,31 @@
+﻿Feature,MI_Score
+worst radius,0.46122131895209173
+worst perimeter,0.4545589447862548
+worst area,0.4533421768001691
+mean concave points,0.4459560357010155
+worst concave points,0.4329003841779413
+mean perimeter,0.40930075678736966
+mean area,0.37469605722408517
+mean radius,0.37325097662035733
+mean concavity,0.3540852667365484
+area error,0.35000883613302647
+worst concavity,0.29939627975020433
+perimeter error,0.2654587303355238
+radius error,0.23125610227280635
+worst compactness,0.2195736175693701
+mean compactness,0.2187566631553386
+worst texture,0.14168892095158703
+concave points error,0.12538592666084813
+worst symmetry,0.10330071597738288
+mean smoothness,0.10013847426065703
+worst smoothness,0.09951293378659032
+concavity error,0.09864679075330818
+worst fractal dimension,0.08079281212869249
+mean symmetry,0.07782459519348306
+mean texture,0.0726698305143143
+compactness error,0.043692571983572126
+fractal dimension error,0.043166512452900374
+symmetry error,0.030854441510765218
+mean fractal dimension,0.0
+texture error,0.0
+smoothness error,0.0

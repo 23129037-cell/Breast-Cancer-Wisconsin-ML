@@ -1,0 +1,16 @@
+
+# Python virtual environment
+.venv/
+__pycache__/
+*.py[cod]
+
+# Local secrets and editor settings
+.env
+.vscode/
+
+# Raw dataset and archives
+data/
+*.zip
+
+# Ignore the prepared dataset until its contents are verified
+results/wdbc_prepared.csv
