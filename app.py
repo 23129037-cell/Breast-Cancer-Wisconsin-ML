@@ -1,6 +1,7 @@
 
 from pathlib import Path
 import json
+import os
 import joblib
 import pandas as pd
 import streamlit as st
@@ -125,6 +126,7 @@ page = st.sidebar.radio(
         "📊 So sánh mô hình",
         "🔬 Phân tích XAI",
         "🧪 Thử dự đoán",
+        "🤖 AI Agent có xác nhận",
         "ℹ️ Giới thiệu"
     ]
 )
@@ -329,43 +331,150 @@ elif page == "🧪 Thử dự đoán":
                 width="stretch"
             )
 
+        
         if submitted:
-            X_input = pd.DataFrame(
-                [[input_values[name] for name in feature_names]],
-                columns=feature_names
-            )
-
-            try:
-                prediction = int(model.predict(X_input)[0])
-                probabilities = model.predict_proba(X_input)[0]
-
-                # Pipeline của đề tài quy ước 0 = Benign, 1 = Malignant.
-                # Chỉ sử dụng cách hiển thị này nếu main.py đã mã hóa như vậy.
-                if prediction == 1:
-                    st.error("Mô hình dự đoán: Malignant (ác tính)")
-                else:
-                    st.success("Mô hình dự đoán: Benign (lành tính)")
-
-                st.markdown("### Xác suất đầu ra của mô hình")
-                prob_df = pd.DataFrame({
-                    "Nhãn": ["Benign", "Malignant"],
-                    "Xác suất": [
-                        float(probabilities[0]),
-                        float(probabilities[1])
-                    ]
-                })
-                st.bar_chart(prob_df.set_index("Nhãn"))
-                st.caption(
-                    "Xác suất mô hình không đồng nghĩa với xác suất "
-                    "mắc bệnh đã được xác nhận về mặt lâm sàng."
+            if not confirmed:
+                st.warning(
+                    "Bạn cần đánh dấu xác nhận trước khi gọi API."
+                )
+            else:
+                api_url = os.getenv(
+                    "PREDICTION_API_URL",
+                    "http://127.0.0.1:8000/predict"
                 )
 
-            except Exception as e:
-                st.error(f"Không thể dự đoán: {e}")
+                try:
+                    response = requests.post(
+                        api_url,
+                        json={"features": input_values},
+                        timeout=30,
+                    )
+
+                    if response.status_code == 200:
+                        result = response.json()
+
+                        st.success("Dự đoán thành công!")
+                        st.write("Kết quả:", result["label"])
+                        st.write(
+                            "Xác suất lành tính:",
+                            f'{result["probability_benign"]:.2%}'
+                        )
+                        st.write(
+                            "Xác suất ác tính:",
+                            f'{result["probability_malignant"]:.2%}'
+                        )
+                        st.caption(result["notice"])
+                    else:
+                        st.error(
+                            f"Lỗi API: {response.status_code}"
+                        )
+                        st.code(response.text)
+
+                except requests.exceptions.RequestException as e:
+                    st.error(f"Không thể kết nối API: {e}")
+
+# =========================
+
+# =========================
+# 9. AI AGENT CO XAC NHAN
+# =========================
+elif page == "🤖 AI Agent có xác nhận":
+    import requests
+
+    st.markdown("## 🤖 Quy trình dự đoán có xác nhận")
+    st.write(
+        "Người dùng xem lại dữ liệu và xác nhận trước khi "
+        "hệ thống gửi yêu cầu đến API dự đoán."
+    )
+
+    st.warning(
+        "Chỉ phục vụ nghiên cứu và học tập; không sử dụng "
+        "để tự chẩn đoán hoặc quyết định điều trị."
+    )
+
+    names_path = MODELS_DIR / "feature_names.json"
+    medians_path = MODELS_DIR / "feature_medians.json"
+
+    if not names_path.exists() or not medians_path.exists():
+        st.error("Không tìm thấy file đặc trưng hoặc giá trị trung vị.")
+    else:
+        with open(names_path, "r", encoding="utf-8") as f:
+            feature_names = json.load(f)
+
+        with open(medians_path, "r", encoding="utf-8") as f:
+            medians = json.load(f)
+
+        st.info(
+            "Các giá trị mặc định là trung vị của tập huấn luyện. "
+            "Bạn có thể thay đổi để kiểm thử."
+        )
+
+        with st.form("agent_confirmation_form"):
+            input_values = {}
+            columns = st.columns(3)
+
+            for i, feature in enumerate(feature_names):
+                with columns[i % 3]:
+                    input_values[feature] = st.number_input(
+                        feature,
+                        value=float(medians[feature]),
+                        format="%.6f",
+                        key=f"agent_feature_{i}",
+                    )
+
+            confirmed = st.checkbox(
+                "Tôi đã xem lại dữ liệu và đồng ý gửi yêu cầu dự đoán.",
+                key="agent_user_confirmation",
+            )
+
+            submitted = st.form_submit_button(
+                "Xác nhận và gọi API",
+                width="stretch",
+            )
+
+        if submitted:
+            if not confirmed:
+                st.warning(
+                    "Bạn cần đánh dấu xác nhận trước khi gọi API."
+                )
+            else:
+                api_url = os.getenv(
+                    "PREDICTION_API_URL",
+                    "http://127.0.0.1:8000/predict",
+                )
+
+                try:
+                    response = requests.post(
+                        api_url,
+                        json={"features": input_values},
+                        timeout=30,
+                    )
+
+                    if response.status_code == 200:
+                        result = response.json()
+                        st.success("Dự đoán thành công!")
+                        st.write("Kết quả:", result["label"])
+                        st.write(
+                            "Xác suất lành tính:",
+                            f'{result["probability_benign"]:.2%}',
+                        )
+                        st.write(
+                            "Xác suất ác tính:",
+                            f'{result["probability_malignant"]:.2%}',
+                        )
+                        st.caption(result["notice"])
+                    else:
+                        st.error(
+                            f"Lỗi API: {response.status_code}"
+                        )
+                        st.code(response.text)
+
+                except requests.exceptions.RequestException as e:
+                    st.error(f"Không thể kết nối API: {e}")
 
 
 # =========================
-# 9. GIOI THIEU
+# 10. GIOI THIEU
 # =========================
 elif page == "ℹ️ Giới thiệu":
     st.markdown("## Giới thiệu đề tài")
