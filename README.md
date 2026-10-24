@@ -155,3 +155,64 @@ Do đó `Recall/Sensitivity` đo khả năng phát hiện lớp **Malignant**.
 ## 10. Lưu ý về y khoa
 
 Đây là mô hình nghiên cứu/giáo dục dựa trên WDBC. Không dùng kết quả để chẩn đoán bệnh nhân thực tế. WDBC không thay thế dữ liệu lâm sàng hoặc đánh giá độc lập trên bệnh viện.
+## 11. Chạy ứng dụng web bằng Docker
+
+Dự án sử dụng Docker để đóng gói ứng dụng Streamlit và các thư viện cần thiết trong môi trường độc lập.
+
+### 11.1. Tạo Docker image
+
+Mở Docker Desktop, sau đó mở PowerShell tại thư mục dự án và chạy:
+
+```powershell
+docker build -t breast-cancer-ai .
+```
+
+### 11.2. Khởi chạy ứng dụng
+
+```powershell
+docker run -d --name breast-cancer-app -p 8501:8501 breast-cancer-ai
+```
+
+Sau khi container khởi chạy, mở trình duyệt tại:
+
+http://localhost:8501
+
+### 11.3. Kiểm tra ứng dụng
+
+Kiểm tra container đang chạy:
+
+```powershell
+docker ps
+```
+
+Xem nhật ký ứng dụng nếu có lỗi:
+
+```powershell
+docker logs breast-cancer-app
+```
+
+### 11.4. Dừng và khởi động lại
+
+Dừng ứng dụng:
+
+```powershell
+docker stop breast-cancer-app
+```
+
+Khởi động lại:
+
+```powershell
+docker start breast-cancer-app
+```
+
+Nếu cần xóa container để tạo lại:
+
+```powershell
+docker rm -f breast-cancer-app
+```
+
+Sau đó chạy lại lệnh `docker run` ở mục 11.2.
+
+## 12. Lưu ý về sử dụng
+
+Ứng dụng phục vụ mục đích nghiên cứu và giáo dục trên bộ dữ liệu WDBC. Kết quả dự đoán không thay thế chẩn đoán của bác sĩ, không được dùng làm căn cứ duy nhất để quyết định điều trị và chưa thể hiện hiệu quả lâm sàng trên bệnh nhân thực tế.
